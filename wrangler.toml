@@ -1,4 +1,4 @@
-name = "calendar-worker"
+name = "isfd18-2do-ingles"
 main = "src/worker.js"
 compatibility_date = "2026-06-01"
 
