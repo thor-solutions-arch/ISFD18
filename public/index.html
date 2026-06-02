@@ -1,27 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
 
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Shared Calendar</title>
+    <title>Calendario Compartido</title>
 
-  <link
-    href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css"
-    rel="stylesheet"
-  >
+    <link
+      href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css"
+      rel="stylesheet"
+    />
 
-  <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/style.css" />
+  </head>
 
-</head>
-<body>
+  <body>
+    <div class="background"></div>
 
-  <div id="calendar"></div>
+    <header class="topbar">
+      <div class="logo-container">
+        <img src="/logo.png" class="logo" alt="Logo" />
 
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+        <div>
+          <h1>Calendario Compartido</h1>
+          <p>Eventos y organización grupal</p>
+        </div>
+      </div>
+    </header>
 
-  <script src="/app.js"></script>
+    <main>
+      <div class="calendar-wrapper">
+        <div id="calendar"></div>
+      </div>
+    </main>
 
-</body>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/locales/es.global.min.js"></script>
+
+    <script src="/app.js"></script>
+  </body>
 </html>
