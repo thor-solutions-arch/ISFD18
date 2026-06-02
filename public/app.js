@@ -1,70 +1,134 @@
-document.addEventListener("DOMContentLoaded", async function () {
-  const calendarEl = document.getElementById("calendar");
 
-  const calendar = new FullCalendar.Calendar(calendarEl, {
-    locale: "es",
+// public/app.js
 
-    initialView: "dayGridMonth",
+document.addEventListener(
+  'DOMContentLoaded',
+  async function () {
 
-    selectable: true,
+    const calendarEl =
+      document.getElementById('calendar')
 
-    editable: false,
+    const calendar =
+      new FullCalendar.Calendar(
+        calendarEl,
+        {
 
-    height: "auto",
+          locale: 'es',
 
-    headerToolbar: {
-      left: "prev,next today",
-      center: "title",
-      right: "dayGridMonth,timeGridWeek",
-    },
+          firstDay: 1,
 
-    buttonText: {
-      today: "Hoy",
-      month: "Mes",
-      week: "Semana",
-    },
+          initialView: 'dayGridMonth',
 
-    events: async function (info, successCallback) {
-      const res = await fetch("/events");
+          selectable: true,
 
-      const data = await res.json();
+          editable: false,
 
-      successCallback(data);
-    },
+          height: 'auto',
 
-    dateClick: async function (info) {
-      const title = prompt("Nombre del evento");
+          dayMaxEvents: 3,
 
-      if (!title) return;
+          headerToolbar: {
 
-      await fetch("/events", {
-        method: "POST",
+            left:
+              'prev,next today',
 
-        headers: {
-          "Content-Type": "application/json",
-        },
+            center:
+              'title',
 
-        body: JSON.stringify({
-          title,
-          start: info.dateStr,
-        }),
-      });
+            right:
+              'dayGridMonth,timeGridWeek'
+          },
 
-      calendar.refetchEvents();
-    },
+          buttonText: {
 
-    eventClick: async function (info) {
-      const confirmDelete = confirm("¿Eliminar este evento?");
+            today: 'Hoy',
 
-      if (!confirmDelete) return;
+            month: 'Mes',
 
-      await fetch("/events/" + info.event.id, {
-        method: "DELETE",
-      });
+            week: 'Semana'
+          },
 
-      calendar.refetchEvents();
-    },
-  });
+          dayHeaderFormat: {
+            weekday: 'short'
+          },
 
-  calendar.render();
-});
+          /* =========================
+             CARGAR EVENTOS
+          ========================= */
+
+          events: async function(
+            info,
+            successCallback
+          ) {
+
+            const res =
+              await fetch('/events')
+
+            const data =
+              await res.json()
+
+            successCallback(data)
+          },
+
+          /* =========================
+             CREAR EVENTO
+          ========================= */
+
+          dateClick: async function(info) {
+
+            const title =
+              prompt(
+                'Nombre del evento'
+              )
+
+            if (!title) return
+
+            await fetch('/events', {
+
+              method: 'POST',
+
+              headers: {
+                'Content-Type':
+                  'application/json'
+              },
+
+              body: JSON.stringify({
+
+                title,
+
+                start: info.dateStr
+              })
+            })
+
+            calendar.refetchEvents()
+          },
+
+          /* =========================
+             ELIMINAR EVENTO
+          ========================= */
+
+          eventClick: async function(info) {
+
+            const confirmDelete =
+              confirm(
+                '¿Eliminar este evento?'
+              )
+
+            if (!confirmDelete) return
+
+            await fetch(
+              '/events/' + info.event.id,
+              {
+                method: 'DELETE'
+              }
+            )
+
+            calendar.refetchEvents()
+          }
+
+        }
+      )
+
+    calendar.render()
+  }
+)
