@@ -1,134 +1,206 @@
-
 // public/app.js
 
-document.addEventListener(
-  'DOMContentLoaded',
-  async function () {
+const calendar = document.getElementById("calendar");
 
-    const calendarEl =
-      document.getElementById('calendar')
+const monthTitle = document.getElementById("monthTitle");
 
-    const calendar =
-      new FullCalendar.Calendar(
-        calendarEl,
-        {
+const prevBtn = document.getElementById("prevBtn");
 
-          locale: 'es',
+const nextBtn = document.getElementById("nextBtn");
 
-          firstDay: 1,
+const modal = document.getElementById("modal");
 
-          initialView: 'dayGridMonth',
+const eventTitle = document.getElementById("eventTitle");
 
-          selectable: true,
+const saveBtn = document.getElementById("saveBtn");
 
-          editable: false,
+const cancelBtn = document.getElementById("cancelBtn");
 
-          height: 'auto',
+let currentDate = new Date();
 
-          dayMaxEvents: 3,
+let selectedDate = null;
 
-          headerToolbar: {
+const months = [
+  "Enero",
+  "Febrero",
+  "Marzo",
+  "Abril",
+  "Mayo",
+  "Junio",
+  "Julio",
+  "Agosto",
+  "Septiembre",
+  "Octubre",
+  "Noviembre",
+  "Diciembre",
+];
 
-            left:
-              'prev,next today',
+async function getEvents() {
+  const res = await fetch("/events");
 
-            center:
-              'title',
+  return await res.json();
+}
 
-            right:
-              'dayGridMonth,timeGridWeek'
-          },
+async function renderCalendar() {
+  calendar.innerHTML = "";
 
-          buttonText: {
+  const year = currentDate.getFullYear();
 
-            today: 'Hoy',
+  const month = currentDate.getMonth();
 
-            month: 'Mes',
+  monthTitle.textContent = months[month] + " " + year;
 
-            week: 'Semana'
-          },
+  const firstDay = new Date(year, month, 1);
 
-          dayHeaderFormat: {
-            weekday: 'short'
-          },
+  const lastDay = new Date(year, month + 1, 0);
 
-          /* =========================
-             CARGAR EVENTOS
-          ========================= */
+  let startDay = firstDay.getDay();
 
-          events: async function(
-            info,
-            successCallback
-          ) {
+  startDay = startDay === 0 ? 6 : startDay - 1;
 
-            const res =
-              await fetch('/events')
+  const totalDays = lastDay.getDate();
 
-            const data =
-              await res.json()
+  const events = await getEvents();
 
-            successCallback(data)
-          },
+  // EMPTY CELLS
 
-          /* =========================
-             CREAR EVENTO
-          ========================= */
+  for (let i = 0; i < startDay; i++) {
+    const empty = document.createElement("div");
 
-          dateClick: async function(info) {
+    empty.className = "day empty";
 
-            const title =
-              prompt(
-                'Nombre del evento'
-              )
-
-            if (!title) return
-
-            await fetch('/events', {
-
-              method: 'POST',
-
-              headers: {
-                'Content-Type':
-                  'application/json'
-              },
-
-              body: JSON.stringify({
-
-                title,
-
-                start: info.dateStr
-              })
-            })
-
-            calendar.refetchEvents()
-          },
-
-          /* =========================
-             ELIMINAR EVENTO
-          ========================= */
-
-          eventClick: async function(info) {
-
-            const confirmDelete =
-              confirm(
-                '¿Eliminar este evento?'
-              )
-
-            if (!confirmDelete) return
-
-            await fetch(
-              '/events/' + info.event.id,
-              {
-                method: 'DELETE'
-              }
-            )
-
-            calendar.refetchEvents()
-          }
-
-        }
-      )
-
-    calendar.render()
+    calendar.appendChild(empty);
   }
-)
+
+  // REAL DAYS
+
+  for (let day = 1; day <= totalDays; day++) {
+    const dayEl = document.createElement("div");
+
+    dayEl.className = "day";
+
+    const date = new Date(year, month, day);
+
+    const dateStr = date.toISOString().split("T")[0];
+
+    // TODAY
+
+    const today = new Date();
+
+    if (today.toDateString() === date.toDateString()) {
+      dayEl.classList.add("today");
+    }
+
+    // NUMBER
+
+    const number = document.createElement("div");
+
+    number.className = "day-number";
+
+    number.textContent = day;
+
+    dayEl.appendChild(number);
+
+    // EVENTS CONTAINER
+
+    const eventsContainer = document.createElement("div");
+
+    eventsContainer.className = "events";
+
+    // FILTER EVENTS
+
+    const dayEvents = events.filter((e) => e.start === dateStr);
+
+    dayEvents.forEach((event) => {
+      const eventEl = document.createElement("div");
+
+      eventEl.className = "event";
+
+      eventEl.textContent = event.title;
+
+      // DELETE EVENT
+
+      eventEl.addEventListener("click", async (ev) => {
+        ev.stopPropagation();
+
+        const confirmDelete = confirm("¿Eliminar evento?");
+
+        if (!confirmDelete) return;
+
+        await fetch("/events/" + event.id, {
+          method: "DELETE",
+        });
+
+        renderCalendar();
+      });
+
+      eventsContainer.appendChild(eventEl);
+    });
+
+    dayEl.appendChild(eventsContainer);
+
+    // ADD EVENT
+
+    dayEl.addEventListener("click", () => {
+      selectedDate = dateStr;
+
+      modal.classList.remove("hidden");
+
+      eventTitle.value = "";
+
+      eventTitle.focus();
+    });
+
+    calendar.appendChild(dayEl);
+  }
+}
+
+// SAVE EVENT
+
+saveBtn.addEventListener("click", async () => {
+  const title = eventTitle.value.trim();
+
+  if (!title) return;
+
+  await fetch("/events", {
+    method: "POST",
+
+    headers: {
+      "Content-Type": "application/json",
+    },
+
+    body: JSON.stringify({
+      title,
+
+      start: selectedDate,
+    }),
+  });
+
+  modal.classList.add("hidden");
+
+  renderCalendar();
+});
+
+// CANCEL
+
+cancelBtn.addEventListener("click", () => {
+  modal.classList.add("hidden");
+});
+
+// NAVIGATION
+
+prevBtn.addEventListener("click", () => {
+  currentDate.setMonth(currentDate.getMonth() - 1);
+
+  renderCalendar();
+});
+
+nextBtn.addEventListener("click", () => {
+  currentDate.setMonth(currentDate.getMonth() + 1);
+
+  renderCalendar();
+});
+
+// INIT
+
+renderCalendar();
